@@ -6,12 +6,50 @@ import threading
 db_config = {
     'user': 'user',
     'password': 'password',
-    'host': 'host',
+    'host': 'db',
     'database': 'quiz_db'
 }
 
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
+
+create_users_table = """
+CREATE TABLE IF NOT EXISTS users (
+    username VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(64) NOT NULL
+);
+"""
+
+create_questions_table = """
+CREATE TABLE IF NOT EXISTS questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question TEXT NOT NULL,
+    option1 VARCHAR(255) NOT NULL,
+    option2 VARCHAR(255) NOT NULL,
+    option3 VARCHAR(255) NOT NULL,
+    option4 VARCHAR(255) NOT NULL,
+    correct_option INT NOT NULL,
+    created_by VARCHAR(50),
+    FOREIGN KEY (created_by) REFERENCES users(username)
+);
+"""
+
+create_leaderboard_table = """
+CREATE TABLE IF NOT EXISTS leaderboard (
+    username VARCHAR(50) PRIMARY KEY,
+    score INT DEFAULT 0,
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+"""
+
+
+cursor.execute(create_users_table)
+cursor.execute(create_questions_table)
+cursor.execute(create_leaderboard_table)
+
+conn.commit()
+
+print("Database schema created successfully.")
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
